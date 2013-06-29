@@ -52,9 +52,11 @@ class SPARQL {
 	public $selectGraph		= null;
 	public $insertGraph		= null;
 	public $deleteGraph		= null;
+    public $describeGraph   = null;
 	public $deleteCond		= null;
 	public $unions 			= array(); //array of SPARQL object
-	
+
+
 	/**
 	*
 	* METHODS
@@ -71,6 +73,12 @@ class SPARQL {
 		$this->distinctSelect = $bool; 
 		return $this;
 	}
+
+    public function describe($graph)
+    {
+        $this->describeGraph = $graph;
+        return $this;
+    }
 
 	public function select($graph)
 	{ 
@@ -121,9 +129,9 @@ class SPARQL {
 		$this->wheres[] = "FILTER ($x)"; 
 		return $this; 
 	}
-	public function orderBy($x)
+	public function orderBy($x, $operator="asc")
 	{ 
-		$this->orders[] = $x;
+		$this->orders[] = $operator. " (" .$x . ") ";
 		return $this; 
 	}
 	public function limit($x)
@@ -140,9 +148,9 @@ class SPARQL {
 	public function launch($debug=false)
 	{
 		if($this->sparql == "") $this->sparql = $this->build();
-		
+
 		if($debug) echo htmlspecialchars($this->sparql);
-		//echo $this->sparql;
+        //echo $this->sparql;
 		
 		$posts = array(
 			$this->queryParam => urlencode($this->sparql),
@@ -150,7 +158,7 @@ class SPARQL {
 		);
 		
 		$fields_string = "";
-		
+
 		//url-ify the data for the POST
 		foreach($posts as $key=>$value) { $fields_string .= $key.'='.$value.'&'; }
 		rtrim($fields_string,'&');
@@ -173,7 +181,7 @@ class SPARQL {
 		
 		//execute post
 		$result = curl_exec($ch);
-		
+
 		//close connection
 		curl_close($ch);
 		
@@ -195,6 +203,7 @@ class SPARQL {
 		//VARIABLES
 		if($this->insertGraph != null) $sp .= "INSERT IN GRAPH <" . $this->insertGraph . "> ";
 		elseif($this->deleteGraph != null) $sp .= "DELETE FROM <" . $this->deleteGraph . "> { " . $this->deleteCond . " }";
+		elseif($this->describeGraph != null) $sp .= "DESCRIBE ";
 		else $sp .= "SELECT ";
 
 		if($this->distinctSelect) $sp .= "DISTINCT ";
@@ -215,7 +224,8 @@ class SPARQL {
 
 		//WHERES 
 		if($this->insertGraph == null) $sp .= " WHERE";
-		if($this->selectGraph != null) $sp .= " { GRAPH <" . $this->selectGraph . ">";
+		if($this->selectGraph != null  ) $sp .= " { GRAPH <" . $this->selectGraph . ">";
+		elseif($this->describeGraph != null  ) $sp .= " { GRAPH <" . $this->describeGraph . ">";
 
 		if(count($this->unions) > 0) $sp .= " {";
 
@@ -243,7 +253,7 @@ class SPARQL {
 		}
 
 		if(count($this->unions) > 0) $sp .= " } ";
-		if($this->selectGraph != null) $sp .= " } ";
+		if($this->selectGraph != null || $this->describeGraph) $sp .= " } ";
 
 		//ORDER BY
 		if(count($this->orders) > 0)
