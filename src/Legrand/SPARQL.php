@@ -179,6 +179,7 @@ class SPARQL {
 			curl_setopt($ch,CURLOPT_POSTFIELDS,$fields_string);
 		}
 		
+
 		//execute post
 		$result = curl_exec($ch);
 
