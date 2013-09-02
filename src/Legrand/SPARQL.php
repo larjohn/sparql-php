@@ -55,7 +55,7 @@ class SPARQL {
     public $describeGraph   = null;
 	public $deleteCond		= null;
 	public $unions 			= array(); //array of SPARQL object
-
+    public $boundGraph      = true;
 
 	/**
 	*
@@ -74,6 +74,17 @@ class SPARQL {
 		return $this;
 	}
 
+
+    public function bound($bool){
+        $this->boundGraph = $bool;
+        return $this;
+    }
+
+    public function getGraph($graph=""){
+        if(!$this->boundGraph)
+            return "?g";
+        else return "<".$graph.">";
+    }
     public function describe($graph)
     {
         $this->describeGraph = $graph;
@@ -185,7 +196,6 @@ class SPARQL {
 
 		//close connection
 		curl_close($ch);
-		
 		if($this->format == 'json') return json_decode($result, true);
 		else return $result;
 	}
@@ -202,8 +212,8 @@ class SPARQL {
 		}
 
 		//VARIABLES
-		if($this->insertGraph != null) $sp .= "INSERT IN GRAPH <" . $this->insertGraph . "> ";
-		elseif($this->deleteGraph != null) $sp .= "DELETE FROM <" . $this->deleteGraph . "> { " . $this->deleteCond . " }";
+		if($this->insertGraph != null) $sp .= "INSERT IN GRAPH " . $this->getGraph($this->insertGraph) ;
+		elseif($this->deleteGraph != null) $sp .= "DELETE FROM " .$this->getGraph($this->deleteGraph). " { " . $this->deleteCond . " }";
 		elseif($this->describeGraph != null) $sp .= "DESCRIBE ";
 		else $sp .= "SELECT ";
 
@@ -225,8 +235,8 @@ class SPARQL {
 
 		//WHERES 
 		if($this->insertGraph == null) $sp .= " WHERE";
-		if($this->selectGraph != null  ) $sp .= " { GRAPH <" . $this->selectGraph . ">";
-		elseif($this->describeGraph != null  ) $sp .= " { GRAPH <" . $this->describeGraph . ">";
+		if($this->selectGraph != null  ) $sp .= " { GRAPH " . $this->getGraph($this->selectGraph) ;
+		elseif($this->describeGraph != null  ) $sp .= " { GRAPH " . $this->getGraph($this->describeGraph);
 
 		if(count($this->unions) > 0) $sp .= " {";
 
