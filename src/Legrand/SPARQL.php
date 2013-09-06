@@ -57,6 +57,8 @@ class SPARQL {
 	public $unions 			= array(); //array of SPARQL object
     public $boundGraph      = true;
 
+
+    public $action          ="select";
 	/**
 	*
 	* METHODS
@@ -88,24 +90,28 @@ class SPARQL {
     public function describe($graph)
     {
         $this->describeGraph = $graph;
+        $this->action = "describe";
         return $this;
     }
 
 	public function select($graph)
 	{ 
 		$this->selectGraph = $graph;
+        $this->action = "select";
 		return $this;
 	}
 
 	public function insert($graph)
 	{ 
 		$this->insertGraph = $graph;
+        $this->action = "insert";
 		return $this;
 	}
 
 	public function delete($graph, $cond)
 	{ 
 		$this->deleteGraph = $graph;
+        $this->action = "delete";
 		$this->deleteCond = $cond;
 		return $this;
 	}
@@ -115,9 +121,14 @@ class SPARQL {
 		$this->variables[] = $x; 
 		return $this;
 	}
-	public function where($x, $y, $z)
-	{ 
-		$this->wheres[] = "$x $y $z"; 
+	public function where($x, $y, $z, $g=NULL)
+	{
+        $where =  "$x $y $z";
+
+        if($g!=NULL)
+            $where = "GRAPH <$g> { $where }";
+
+        $this->wheres[] = $where;
 		return $this; 
 	}
 	public function optionalWhere($x, $y, $z)
@@ -212,9 +223,9 @@ class SPARQL {
 		}
 
 		//VARIABLES
-		if($this->insertGraph != null) $sp .= "INSERT IN GRAPH " . $this->getGraph($this->insertGraph) ;
-		elseif($this->deleteGraph != null) $sp .= "DELETE FROM " .$this->getGraph($this->deleteGraph). " { " . $this->deleteCond . " }";
-		elseif($this->describeGraph != null) $sp .= "DESCRIBE ";
+		if($this->insertGraph != null && $this->action == "insert") $sp .= "INSERT IN GRAPH " . $this->getGraph($this->insertGraph) ;
+		elseif($this->deleteGraph != null && $this->action == "delete") $sp .= "DELETE FROM " .$this->getGraph($this->deleteGraph). " { " . $this->deleteCond . " }";
+		elseif($this->action == "describe") $sp .= "DESCRIBE ";
 		else $sp .= "SELECT ";
 
 		if($this->distinctSelect) $sp .= "DISTINCT ";
