@@ -57,6 +57,8 @@ class SPARQL {
 	public $unions 			= array(); //array of SPARQL object
     public $boundGraph      = true;
 
+    public $having = null;
+    public $groupby = null;
 
     public $action          ="select";
 	/**
@@ -151,6 +153,11 @@ class SPARQL {
 		$this->wheres[] = "FILTER ($x)"; 
 		return $this; 
 	}
+    public function filterNotExists($x)
+	{
+		$this->wheres[] = "FILTER NOT EXISTS {".$x."}";
+		return $this;
+	}
 	public function orderBy($x, $operator="asc")
 	{ 
 		$this->orders[] = $operator. " (" .$x . ") ";
@@ -166,6 +173,13 @@ class SPARQL {
 		$this->offsetNb = $x; 
 		return $this; 
 	}
+
+    public function groupby($x){
+        $this->groupby = $x;
+    }
+    public function having($x){
+        $this->having = $x;
+    }
 	
 	public function launch($debug=false)
 	{
@@ -297,6 +311,9 @@ class SPARQL {
 
 		//OFFSET
 		if($this->offsetNb != null) $sp .= " OFFSET " . $this->offsetNb;
+        if($this->groupby != null) $sp .= " GROUP BY " . $this->groupby;
+		if($this->having != null) $sp .= " HAVING ( " . $this->having .") ";
+
 
 		return $sp;
 	}
