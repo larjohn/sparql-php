@@ -133,9 +133,14 @@ class SPARQL {
         $this->wheres[] = $where;
 		return $this; 
 	}
-	public function optionalWhere($x, $y, $z)
-	{ 
-		$this->wheres[] = "OPTIONAL { $x $y $z }"; 
+	public function optionalWhere($x, $y, $z, $g=null)
+	{
+        $where = "OPTIONAL { $x $y $z }";
+
+
+        if($g!=NULL)
+            $where = "OPTIONAL { GRAPH <$g> {"."$x $y $z }}";
+        $this->wheres[] = $where;
 		return $this; 
 	}
 	public function optionalWhereComplexe($obj)
@@ -156,6 +161,11 @@ class SPARQL {
     public function filterNotExists($x)
 	{
 		$this->wheres[] = "FILTER NOT EXISTS {".$x."}";
+		return $this;
+	}
+    public function filterExists($x)
+	{
+		$this->wheres[] = "FILTER  EXISTS {".$x."}";
 		return $this;
 	}
 	public function orderBy($x, $operator="asc")
