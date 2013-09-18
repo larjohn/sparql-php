@@ -300,6 +300,8 @@ class SPARQL {
 
 		if(count($this->unions) > 0) $sp .= " } ";
 		if($this->selectGraph != null || $this->describeGraph) $sp .= " } ";
+        if($this->groupby != null) $sp .= " GROUP BY " . $this->groupby;
+        if($this->having != null) $sp .= " HAVING ( " . $this->having .") ";
 
 		//ORDER BY
 		if(count($this->orders) > 0)
@@ -321,8 +323,6 @@ class SPARQL {
 
 		//OFFSET
 		if($this->offsetNb != null) $sp .= " OFFSET " . $this->offsetNb;
-        if($this->groupby != null) $sp .= " GROUP BY " . $this->groupby;
-		if($this->having != null) $sp .= " HAVING ( " . $this->having .") ";
 
 
 		return $sp;
